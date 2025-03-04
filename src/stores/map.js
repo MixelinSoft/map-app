@@ -4,6 +4,7 @@ import axios from 'axios'
 import { defineStore } from 'pinia'
 // Import Utils
 import getNearestPeoples from '@/utils/getNearestPeoples.js'
+import filterPlaces from '@/utils/filterPlaces.js'
 
 export const useMapStore = defineStore('map', {
   state: () => ({
@@ -13,10 +14,21 @@ export const useMapStore = defineStore('map', {
     activeMarker: null,
     nearestPeoples: [],
     showInfoPanel: false,
+    showFilterPanel: false,
+    filters: {
+      cafe: true,
+      store: true,
+      office: true,
+    },
     showAddMarkerModal: false,
     isLoadingPeoples: false,
     isLoadingMap: true,
   }),
+  getters: {
+    activeFilters: (state) => {
+      return Object.keys(state.filters).filter((key) => state.filters[key])
+    },
+  },
   actions: {
     async fetchPeoples() {
       this.isLoadingPeoples = true
@@ -60,6 +72,20 @@ export const useMapStore = defineStore('map', {
     },
     setShowInfoPanel(show) {
       this.showInfoPanel = show
+    },
+    setShowFilterPanel(show) {
+      if (show) this.showInfoPanel = false
+      this.showFilterPanel = show
+    },
+    toggleFilter(type) {
+      this.filters[type] = !this.filters[type]
+    },
+    resetFilters() {
+      this.filters = {
+        store: true,
+        cafe: true,
+        office: true,
+      }
     },
     setShowAddMarkerModal(show) {
       if (show) this.showInfoPanel = false

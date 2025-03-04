@@ -7,7 +7,7 @@ import { LMap, LTileLayer, LMarker, LControlZoom, LControl } from '@vue-leaflet/
 import L from 'leaflet'
 // Import UI components
 import LoadingOverlay from '@/components/UI/LoadingOverlay.vue'
-import AddMarkerButton from '@/components/Map/AddMarkerButton.vue'
+import MapActions from '@/components/Map/MapActions.vue'
 import AddMarkerModal from '@/components/Map/AddMarkerModal.vue'
 // Import static data
 import places from '@/data/places.json'
@@ -38,7 +38,7 @@ const setActivePlace = (place) => {
   }
 }
 // Create Custom Leafelet Icon
-const createIcon = (type, id = null) => {
+const createIcon = (type, id = null, name = null) => {
   // Check Marker, If Marker is People and People is Nearest to the Marker - Highlight
   const isHighlighted =
     (type === 'people' &&
@@ -48,11 +48,14 @@ const createIcon = (type, id = null) => {
   return L.divIcon({
     className: 'custom-icon',
     html: `
+    <div class="marker-container">
       <div class="marker marker-${type} ${isHighlighted ? 'highlighted-marker' : ''}">
         <div class="marker-dot">
           <img class="marker-icon" src="${type === 'place' ? placeIcon : peopleIcon}" alt="${type} icon" />
         </div>
-      </div>`,
+      </div>
+      ${type === 'people' ? `<div class="marker-people-name">${name}</div>` : ''}
+    </div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32],
@@ -77,7 +80,7 @@ const createIcon = (type, id = null) => {
         name="OpenStreetMap"
       />
       <l-control position="bottomright">
-        <AddMarkerButton />
+        <MapActions />
       </l-control>
       <l-control-zoom position="topright"></l-control-zoom>
 
@@ -95,7 +98,7 @@ const createIcon = (type, id = null) => {
         v-for="people in peoples"
         :key="people.id"
         :lat-lng="[people.address.geo.lat, people.address.geo.lng]"
-        :icon="createIcon('people', people.id)"
+        :icon="createIcon('people', people.id, people.name)"
         @click="console.log(people.name)"
       />
     </l-map>
@@ -121,6 +124,9 @@ const createIcon = (type, id = null) => {
 
 <!-- Marker Styles -->
 <style>
+.marker-container {
+  position: relative;
+}
 .marker {
   width: 32px;
   height: 32px;
@@ -130,7 +136,7 @@ const createIcon = (type, id = null) => {
   border: 1px solid black;
   border-radius: 50% 50% 0 50%;
   transform: rotate(45deg);
-  transition: z-index 0.3s ease-in-out;
+  transition: border 0.1s ease-in-out;
 }
 .marker-place {
   background-color: rgb(71, 95, 255);
@@ -138,7 +144,7 @@ const createIcon = (type, id = null) => {
 .marker-people {
   background-color: rgb(97, 252, 97);
 }
-.marker:hover {
+.marker-container:hover .marker {
   border: 1px solid white;
 }
 .marker-dot {
@@ -150,13 +156,33 @@ const createIcon = (type, id = null) => {
   background-color: white;
   border-radius: 50%;
   transform: rotate(-45deg);
+  border: 1px solid black;
 }
 .marker-icon {
   width: 18px;
   height: 18px;
 }
+
+.marker-people-name {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: max-content;
+  border: 1px solid black;
+  border-radius: 4px;
+  bottom: -38px;
+  left: 50%;
+  padding: 2px;
+  background-color: rgb(151, 255, 131);
+  color: black;
+  visibility: hidden;
+  opacity: 0.2;
+}
+.marker-container:hover .marker-people-name {
+  visibility: visible;
+  opacity: 1;
+}
+
 .highlighted-marker {
-  z-index: 10;
   border: 2px solid red;
 }
 
