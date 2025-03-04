@@ -21,7 +21,10 @@ export const useMapStore = defineStore('map', {
       // Set Bounds Based on Nearest Peoples and Active Marker
       this.bounds = [
         marker.coordinates,
-        ...nearestPeoples.map((person) => [person.address.geo.lat, person.address.geo.lng]),
+        ...nearestPeoples.map((person) => [
+          parseFloat(person.address.geo.lat),
+          parseFloat(person.address.geo.lng),
+        ]),
       ]
       // Show Ifo Panel
       this.showInfoPanel = true

@@ -19,24 +19,9 @@ import peopleIcon from '@/assets/icons/people-icon.svg'
 //Import Functions
 import getDistance from '@/utils/getDistance'
 
-// Create Custom Icon
-const createIcon = (type) => {
-  return L.divIcon({
-    className: 'custom-icon',
-    html: `
-    <div class="marker marker-${type}">
-        <div class="marker-dot">
-          <img class="marker-icon" src="${type === 'place' ? placeIcon : peopleIcon}" alt="place icon" />
-        </div>
-      </div >`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-  })
-}
 // Get Map Store
 const mapStore = useMapStore()
-const { bounds } = storeToRefs(mapStore)
+const { bounds, nearestPeoples } = storeToRefs(mapStore)
 // Set Bounds OnLoad Based On Places, Set Loading State
 const setBoundsOnLoad = () => {
   mapStore.setBounds(places.map((place) => place.coordinates))
@@ -62,8 +47,33 @@ const setActivePlace = (place) => {
       ),
     }
   })
-  const nearestThreePeoples = distances.sort((a, b) => a.distance - b.distance).slice(0, 3)
+  // Sort By Distance And Get Three Nearest
+  const nearestThreePeoples = distances
+    .sort((a, b) => a.distanseToSelectedPlace - b.distanseToSelectedPlace)
+    .slice(0, 3)
+
+  // Set Active Marker
   mapStore.setActiveMarker(place, nearestThreePeoples)
+}
+// Create Custom Icon
+const createIcon = (type, id = null) => {
+  const isHighlighted =
+    type === 'people' &&
+    nearestPeoples.value.length > 0 &&
+    nearestPeoples.value.some((people) => people.id == id)
+  console.log(nearestPeoples)
+  return L.divIcon({
+    className: 'custom-icon',
+    html: `
+      <div class="marker marker-${type} ${isHighlighted ? 'highlighted-marker' : ''}">
+        <div class="marker-dot">
+          <img class="marker-icon" src="${type === 'place' ? placeIcon : peopleIcon}" alt="place icon" />
+        </div>
+      </div >`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
+  })
 }
 </script>
 
@@ -91,8 +101,8 @@ const setActivePlace = (place) => {
         v-for="people in peoples"
         :key="people.id"
         :lat-lng="[people.address.geo.lat, people.address.geo.lng]"
-        :icon="createIcon('people')"
-        @click="console.log(people)"
+        :icon="createIcon('people', people.id, nearestPeoples)"
+        @click="console.log(people.name)"
       />
     </l-map>
     <LoadingOverlay />
@@ -128,7 +138,7 @@ const setActivePlace = (place) => {
 }
 .marker:hover {
   z-index: 10;
-  border: 1px solid red;
+  border: 1px solid white;
 }
 .marker-dot {
   width: 22px;
@@ -143,5 +153,12 @@ const setActivePlace = (place) => {
 .marker-icon {
   width: 18px;
   height: 18px;
+}
+.highlighted-marker {
+  z-index: 10;
+  border: 2px solid red;
+}
+.highlighted-marker .marker-dot {
+  background-color: yellow;
 }
 </style>
