@@ -8,10 +8,10 @@
 
 <style scoped>
 .main {
+  position: relative;
   padding-top: 64px;
   height: 100vh;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  overflow: hidden;
 }
 </style>

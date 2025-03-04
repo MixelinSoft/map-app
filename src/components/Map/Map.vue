@@ -2,74 +2,57 @@
 // Import Pinia and Store
 import { storeToRefs } from 'pinia'
 import { useMapStore } from '@/stores/map'
-// Import Leaflet
-import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
-import L, { latLngBounds } from 'leaflet'
-// Import Components
+// Import Leaflet components
+import { LMap, LTileLayer, LMarker, LControlZoom, LControl } from '@vue-leaflet/vue-leaflet'
+import L from 'leaflet'
+// Import UI components
 import LoadingOverlay from '@/components/UI/LoadingOverlay.vue'
-// Import Static Data
+import AddMarkerButton from '@/components/Map/AddMarkerButton.vue'
+import AddMarkerModal from '@/components/Map/AddMarkerModal.vue'
+// Import static data
 import places from '@/data/places.json'
-// Import Peoples Store
-import { usePeoplesStore } from '@/stores/peoples'
-// Get Loading State
-const { peoples } = storeToRefs(usePeoplesStore())
-// Import Icons
+// Import icons for markers
 import placeIcon from '@/assets/icons/place-icon.svg'
 import peopleIcon from '@/assets/icons/people-icon.svg'
-//Import Functions
-import getDistance from '@/utils/getDistance'
-
-// Get Map Store
+// Import utility Functions
+import getNearestPeoples from '@/utils/getNearestPeoples.js'
+// Get Map Store, Bounds, NearestPeoples
 const mapStore = useMapStore()
-const { bounds, nearestPeoples } = storeToRefs(mapStore)
-// Set Bounds OnLoad Based On Places, Set Loading State
+
+const { currentPlaces, bounds, nearestPeoples, activeMarker, peoples } = storeToRefs(mapStore)
+// Set Places and Bounds based on Places On Load
 const setBoundsOnLoad = () => {
-  mapStore.setBounds(places.map((place) => place.coordinates))
+  mapStore.setCurrentPlaces(places)
+  mapStore.setBounds(currentPlaces.value.map((place) => place.coordinates))
   mapStore.setIsLoadingMap(false)
 }
 // Set Active Place
 const setActivePlace = (place) => {
-  // Get Place Coords
-  const placeCoords = place.coordinates
-  // Add Distance to ALL peoples
-  const distances = peoples.value.map((people) => {
-    return {
-      ...people,
-      distanseToSelectedPlace: getDistance(
-        {
-          lat: people.address.geo.lat,
-          lng: people.address.geo.lng,
-        },
-        {
-          lat: placeCoords[0],
-          lng: placeCoords[1],
-        },
-      ),
-    }
-  })
-  // Sort By Distance And Get Three Nearest
-  const nearestThreePeoples = distances
-    .sort((a, b) => a.distanseToSelectedPlace - b.distanseToSelectedPlace)
-    .slice(0, 3)
-
-  // Set Active Marker
-  mapStore.setActiveMarker(place, nearestThreePeoples)
+  if (place) {
+    mapStore.setShowInfoPanel(true)
+    const placeCoords = place.coordinates
+    // Update Active Marker, Nearest Peaoples
+    mapStore.setActiveMarker(place)
+  } else {
+    mapStore.resetActiveMarker()
+  }
 }
-// Create Custom Icon
+// Create Custom Leafelet Icon
 const createIcon = (type, id = null) => {
+  // Check Marker, If Marker is People and People is Nearest to the Marker - Highlight
   const isHighlighted =
-    type === 'people' &&
-    nearestPeoples.value.length > 0 &&
-    nearestPeoples.value.some((people) => people.id == id)
-  console.log(nearestPeoples)
+    (type === 'people' &&
+      nearestPeoples.value.length > 0 &&
+      nearestPeoples.value.some((people) => people.id == id)) ||
+    (type === 'place' && activeMarker.value?.id == id)
   return L.divIcon({
     className: 'custom-icon',
     html: `
       <div class="marker marker-${type} ${isHighlighted ? 'highlighted-marker' : ''}">
         <div class="marker-dot">
-          <img class="marker-icon" src="${type === 'place' ? placeIcon : peopleIcon}" alt="place icon" />
+          <img class="marker-icon" src="${type === 'place' ? placeIcon : peopleIcon}" alt="${type} icon" />
         </div>
-      </div >`,
+      </div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32],
@@ -81,44 +64,64 @@ const createIcon = (type, id = null) => {
   <div class="map-container">
     <l-map
       :zoom="4"
+      :min-zoom="2"
       :center="[20.45059147699683, 20.52445080444961]"
       :bounds="bounds"
+      :options="{ zoomControl: false }"
       @ready="setBoundsOnLoad"
+      @click="setActivePlace(null)"
     >
       <l-tile-layer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         layer-type="base"
         name="OpenStreetMap"
-      ></l-tile-layer>
+      />
+      <l-control position="bottomright">
+        <AddMarkerButton />
+      </l-control>
+      <l-control-zoom position="topright"></l-control-zoom>
+
+      <!-- Places Markers -->
       <l-marker
-        v-for="place in places"
+        v-for="place in currentPlaces"
         :key="place.id"
         :lat-lng="place.coordinates"
-        :icon="createIcon('place')"
+        :icon="createIcon('place', place.id)"
         @click="setActivePlace(place)"
       />
+
+      <!-- Peoples Markers -->
       <l-marker
         v-for="people in peoples"
         :key="people.id"
         :lat-lng="[people.address.geo.lat, people.address.geo.lng]"
-        :icon="createIcon('people', people.id, nearestPeoples)"
+        :icon="createIcon('people', people.id)"
         @click="console.log(people.name)"
       />
     </l-map>
+
+    <!-- UI Components -->
     <LoadingOverlay />
   </div>
+  <AddMarkerModal />
 </template>
 
 <style scoped>
+/* Map container styles */
 .map-container {
   height: 100%;
   width: 100%;
+  padding-left: 0;
+  transition: padding-left 0.3s ease-in-out;
+}
+.show-info-panel {
+  padding-left: 360px;
 }
 </style>
+
 <!-- Marker Styles -->
 <style>
 .marker {
-  position: relative;
   width: 32px;
   height: 32px;
   display: flex;
@@ -127,7 +130,6 @@ const createIcon = (type, id = null) => {
   border: 1px solid black;
   border-radius: 50% 50% 0 50%;
   transform: rotate(45deg);
-  z-index: 1;
   transition: z-index 0.3s ease-in-out;
 }
 .marker-place {
@@ -137,7 +139,6 @@ const createIcon = (type, id = null) => {
   background-color: rgb(97, 252, 97);
 }
 .marker:hover {
-  z-index: 10;
   border: 1px solid white;
 }
 .marker-dot {
@@ -158,6 +159,7 @@ const createIcon = (type, id = null) => {
   z-index: 10;
   border: 2px solid red;
 }
+
 .highlighted-marker .marker-dot {
   background-color: yellow;
 }

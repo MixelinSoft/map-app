@@ -1,12 +1,10 @@
 <script setup>
 // Import Pinia
 import { storeToRefs } from 'pinia'
-// Import Storse
-import { usePeoplesStore } from '@/stores/peoples'
+// Import Store
 import { useMapStore } from '@/stores/map'
 // Get Loading States
-const { isLoadingPeoples } = storeToRefs(usePeoplesStore())
-const { isLoadingMap } = storeToRefs(useMapStore())
+const { isLoadingMap, isLoadingPeoples } = storeToRefs(useMapStore())
 </script>
 
 <template>
