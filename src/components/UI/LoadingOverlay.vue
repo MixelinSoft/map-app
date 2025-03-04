@@ -1,14 +1,16 @@
 <script setup>
 // Import Pinia
 import { storeToRefs } from 'pinia'
-// Import Peoples Store
+// Import Storse
 import { usePeoplesStore } from '@/stores/peoples'
-// Get Loading State
-const { isLoading } = storeToRefs(usePeoplesStore())
+import { useMapStore } from '@/stores/map'
+// Get Loading States
+const { isLoadingPeoples } = storeToRefs(usePeoplesStore())
+const { isLoadingMap } = storeToRefs(useMapStore())
 </script>
 
 <template>
-  <div :class="['loading-overlay', { active: isLoading }]">
+  <div :class="['loading-overlay', { active: isLoadingPeoples && isLoadingMap }]">
     <p class="loading-text">Завантажуємо...</p>
     <v-progress-circular width="8" size="64" indeterminate color="white"></v-progress-circular>
   </div>

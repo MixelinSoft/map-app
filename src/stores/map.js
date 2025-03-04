@@ -1,17 +1,33 @@
-import definieStore from 'pinia'
+// Import Pinia
+import { defineStore } from 'pinia'
 
 export const useMapStore = defineStore('map', {
   state: () => ({
+    bounds: [],
     activeMarker: null,
-    showAside: false,
+    nearestPeoples: [],
+    showInfoPanel: false,
+    isLoadingMap: true,
   }),
   actions: {
-    setActiveMarker(marker) {
-      this.activeMarker = marker
-      this.showAside = true
+    setBounds(bounds) {
+      this.bounds = bounds
     },
-    setShowAside(show) {
-      this.showAside = show
+    setActiveMarker(marker, nearestPeoples) {
+      // Set Active Marker
+      this.activeMarker = marker
+      // Set Three Nearest Peoples
+      this.nearestPeoples = nearestPeoples
+      // Set Bounds Based on Nearest Peoples and Active Marker
+      this.bounds = [
+        marker.coordinates,
+        ...nearestPeoples.map((person) => [person.address.geo.lat, person.address.geo.lng]),
+      ]
+      // Show Ifo Panel
+      this.showInfoPanel = true
+    },
+    setIsLoadingMap(isLoading) {
+      this.isLoadingMap = isLoading
     },
   },
 })

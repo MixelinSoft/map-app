@@ -7,13 +7,13 @@ export const usePeoplesStore = defineStore('peoples', {
   // Initial State
   state: () => ({
     peoples: [],
-    isLoading: false,
+    isLoadingPeoples: false,
     errorMessage: null,
   }),
   // Actions
   actions: {
     async fetchPeoples() {
-      this.isLoading = true
+      this.isLoadingPeoples = true
       this.errorMessage = null
 
       try {
@@ -23,7 +23,7 @@ export const usePeoplesStore = defineStore('peoples', {
       } catch (error) {
         this.errorMessage = error.message
       } finally {
-        this.isLoading = false
+        this.isLoadingPeoples = false
       }
     },
   },

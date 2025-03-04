@@ -1,9 +1,10 @@
 <script setup>
-// Import Pinia
+// Import Pinia and Store
 import { storeToRefs } from 'pinia'
+import { useMapStore } from '@/stores/map'
 // Import Leaflet
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
-import L from 'leaflet'
+import L, { latLngBounds } from 'leaflet'
 // Import Components
 import LoadingOverlay from '@/components/UI/LoadingOverlay.vue'
 // Import Static Data
@@ -15,15 +16,17 @@ const { peoples } = storeToRefs(usePeoplesStore())
 // Import Icons
 import placeIcon from '@/assets/icons/place-icon.svg'
 import peopleIcon from '@/assets/icons/people-icon.svg'
+//Import Functions
+import getDistance from '@/utils/getDistance'
 
 // Create Custom Icon
 const createIcon = (type) => {
   return L.divIcon({
     className: 'custom-icon',
     html: `
-    <div class="place-marker">
-        <div class="place-marker-dot">
-          <img class="place-marker-icon" src="${type === 'place' ? placeIcon : peopleIcon}" alt="place icon" />
+    <div class="marker marker-${type}">
+        <div class="marker-dot">
+          <img class="marker-icon" src="${type === 'place' ? placeIcon : peopleIcon}" alt="place icon" />
         </div>
       </div >`,
     iconSize: [32, 32],
@@ -31,20 +34,47 @@ const createIcon = (type) => {
     popupAnchor: [0, -32],
   })
 }
-import { ref } from 'vue'
-const bounds = ref(0)
-
-const setNewBounds = (coords) => {
-  bounds.value = [
-    [coords[0] - 0.05, coords[1] - 0.05],
-    [coords[0] + 0.05, coords[1] + 0.05],
-  ]
+// Get Map Store
+const mapStore = useMapStore()
+const { bounds } = storeToRefs(mapStore)
+// Set Bounds OnLoad Based On Places, Set Loading State
+const setBoundsOnLoad = () => {
+  mapStore.setBounds(places.map((place) => place.coordinates))
+  mapStore.setIsLoadingMap(false)
+}
+// Set Active Place
+const setActivePlace = (place) => {
+  // Get Place Coords
+  const placeCoords = place.coordinates
+  // Add Distance to ALL peoples
+  const distances = peoples.value.map((people) => {
+    return {
+      ...people,
+      distanseToSelectedPlace: getDistance(
+        {
+          lat: people.address.geo.lat,
+          lng: people.address.geo.lng,
+        },
+        {
+          lat: placeCoords[0],
+          lng: placeCoords[1],
+        },
+      ),
+    }
+  })
+  const nearestThreePeoples = distances.sort((a, b) => a.distance - b.distance).slice(0, 3)
+  mapStore.setActiveMarker(place, nearestThreePeoples)
 }
 </script>
 
 <template>
   <div class="map-container">
-    <l-map :zoom="4" :center="[50.45059147699683, 30.52445080444961]" :bounds="bounds">
+    <l-map
+      :zoom="4"
+      :center="[20.45059147699683, 20.52445080444961]"
+      :bounds="bounds"
+      @ready="setBoundsOnLoad"
+    >
       <l-tile-layer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         layer-type="base"
@@ -55,13 +85,14 @@ const setNewBounds = (coords) => {
         :key="place.id"
         :lat-lng="place.coordinates"
         :icon="createIcon('place')"
-        @click="setNewBounds(place.coordinates)"
+        @click="setActivePlace(place)"
       />
       <l-marker
         v-for="people in peoples"
         :key="people.id"
         :lat-lng="[people.address.geo.lat, people.address.geo.lng]"
         :icon="createIcon('people')"
+        @click="console.log(people)"
       />
     </l-map>
     <LoadingOverlay />
@@ -76,7 +107,7 @@ const setNewBounds = (coords) => {
 </style>
 <!-- Marker Styles -->
 <style>
-.place-marker {
+.marker {
   position: relative;
   width: 32px;
   height: 32px;
@@ -86,15 +117,20 @@ const setNewBounds = (coords) => {
   border: 1px solid black;
   border-radius: 50% 50% 0 50%;
   transform: rotate(45deg);
-  background-color: rgb(71, 95, 255);
   z-index: 1;
   transition: z-index 0.3s ease-in-out;
 }
-.place-marker:hover {
+.marker-place {
+  background-color: rgb(71, 95, 255);
+}
+.marker-people {
+  background-color: rgb(97, 252, 97);
+}
+.marker:hover {
   z-index: 10;
   border: 1px solid red;
 }
-.place-marker-dot {
+.marker-dot {
   width: 22px;
   height: 22px;
   display: flex;
@@ -104,7 +140,7 @@ const setNewBounds = (coords) => {
   border-radius: 50%;
   transform: rotate(-45deg);
 }
-.place-marker-icon {
+.marker-icon {
   width: 18px;
   height: 18px;
 }
