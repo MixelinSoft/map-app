@@ -34,7 +34,6 @@ const setActivePlace = (place) => {
     <l-map
       class="map"
       :zoom="4"
-      :min-zoom="2"
       :center="[20.45059147699683, 20.52445080444961]"
       :bounds="bounds"
       :options="{ zoomControl: false }"
@@ -66,10 +65,8 @@ const setActivePlace = (place) => {
         v-for="people in peoples"
         :key="people.id"
         :lat-lng="[people.address.geo.lat, people.address.geo.lng]"
-        :icon="createMarkerIcon('people', people.id, nearestPeoples, activeMarker)"
-      >
-        <l-popup>{{ people.name }}</l-popup>
-      </l-marker>
+        :icon="createMarkerIcon('people', people.id, nearestPeoples, activeMarker, people.name)"
+      />
     </l-map>
 
     <!-- UI Components -->
@@ -109,6 +106,7 @@ const setActivePlace = (place) => {
 }
 .marker-container:hover .marker {
   border: 1px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 .marker-dot {
   width: 22px;
@@ -133,17 +131,17 @@ const setActivePlace = (place) => {
 }
 .marker-name {
   position: absolute;
-  bottom: -40px;
+  bottom: -46px;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: blue;
-  color: white;
+  background-color: white;
   text-align: center;
-  padding: 4px 8px;
+  padding: 2px 4px;
   border: 1px solid white;
   border-radius: 4px;
   white-space: nowrap;
   text-overflow: ellipsis;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease-in-out;
