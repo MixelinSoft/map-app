@@ -4,7 +4,6 @@ import axios from 'axios'
 import { defineStore } from 'pinia'
 // Import Utils
 import getNearestPeoples from '@/utils/getNearestPeoples.js'
-import filterPlaces from '@/utils/filterPlaces.js'
 
 export const useMapStore = defineStore('map', {
   state: () => ({
@@ -24,21 +23,20 @@ export const useMapStore = defineStore('map', {
     isLoadingPeoples: false,
     isLoadingMap: true,
   }),
-  getters: {
-    activeFilters: (state) => {
-      return Object.keys(state.filters).filter((key) => state.filters[key])
-    },
-  },
   actions: {
+    // Fetch Peoples From API
     async fetchPeoples() {
+      // Set Loading State
       this.isLoadingPeoples = true
       try {
         const response = await axios.get('https://jsonplaceholder.typicode.com/users')
+        // Set Peoples To Store
         this.peoples = response.data
       } catch (error) {
-        this.peoples = []
+        // Log Error
         console.log(error)
       } finally {
+        // Set Loading State
         this.isLoadingPeoples = false
       }
     },
@@ -46,10 +44,6 @@ export const useMapStore = defineStore('map', {
       this.bounds = bounds
     },
     setActiveMarker(marker) {
-      // Show Ifo Panel
-      this.showInfoPanel = true
-      // Set Active Marker
-      this.activeMarker = marker
       // Set Three Nearest Peoples
       const nearestPeoples = getNearestPeoples(marker.coordinates, this.peoples, 3)
       this.nearestPeoples = nearestPeoples
@@ -61,20 +55,32 @@ export const useMapStore = defineStore('map', {
           parseFloat(person.address.geo.lng),
         ]),
       ]
+      // Set Active Marker
+      this.activeMarker = marker
+      // Show Info Panel
+      this.setShowInfoPanel(true)
     },
     resetActiveMarker() {
+      // Reset Active Marker
       this.activeMarker = null
+      // Reset Nearest Peoples
       this.nearestPeoples = []
+      // Close Info Panel
       this.showInfoPanel = false
     },
     setIsLoadingMap(isLoading) {
       this.isLoadingMap = isLoading
     },
     setShowInfoPanel(show) {
+      // Close Filter Panel
+      this.showFilterPanel = false
+      // Show Info Panel
       this.showInfoPanel = show
     },
     setShowFilterPanel(show) {
-      if (show) this.showInfoPanel = false
+      // Close Info Panel
+      this.showInfoPanel = false
+      // Show Filter Panel
       this.showFilterPanel = show
     },
     toggleFilter(type) {
@@ -88,15 +94,18 @@ export const useMapStore = defineStore('map', {
       }
     },
     setShowAddMarkerModal(show) {
-      if (show) this.showInfoPanel = false
+      // Close Filter Panel
+      this.setShowFilterPanel(false)
+      // Show Add Marker Modal
       this.showAddMarkerModal = show
     },
     setCurrentPlaces(places) {
       this.currentPlaces = places
     },
     addPlace(place) {
-      this.showAddMarkerModal = false
+      // Push Place To Current Places
       this.currentPlaces.push(place)
+      // Set Pushed Place As Active Marker
       this.setActiveMarker(place)
     },
   },

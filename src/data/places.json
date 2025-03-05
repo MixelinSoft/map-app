@@ -1,12 +1,122 @@
 [
-  { "id": 1, "name": "Магазин А", "type": "store", "coordinates": [40.7128, -74.006] },
-  { "id": 2, "name": "Кафе Б", "type": "cafe", "coordinates": [48.8566, 2.3522] },
-  { "id": 3, "name": "Офіс В", "type": "office", "coordinates": [35.6895, 139.6917] },
-  { "id": 4, "name": "Магазин Г", "type": "store", "coordinates": [-33.8688, 151.2093] },
-  { "id": 5, "name": "Кафе Д", "type": "cafe", "coordinates": [55.7558, 37.6173] },
-  { "id": 6, "name": "Офіс Е", "type": "office", "coordinates": [37.7749, -122.4194] },
-  { "id": 7, "name": "Магазин Ж", "type": "store", "coordinates": [51.5074, -0.1278] },
-  { "id": 8, "name": "Кафе З", "type": "cafe", "coordinates": [34.0522, -118.2437] },
-  { "id": 9, "name": "Офіс И", "type": "office", "coordinates": [-23.5505, -46.6333] },
-  { "id": 10, "name": "Магазин К", "type": "store", "coordinates": [28.7041, 77.1025] }
+  {
+    "id": 1,
+    "name": "Магазин А",
+    "type": "store",
+    "coordinates": [50.4501, 30.5234]
+  },
+  {
+    "id": 2,
+    "name": "Кафе Б",
+    "type": "cafe",
+    "coordinates": [50.4511, 30.522]
+  },
+  {
+    "id": 3,
+    "name": "Офіс В",
+    "type": "office",
+    "coordinates": [50.4522, 30.5205]
+  },
+  {
+    "id": 4,
+    "name": "Restaurant C",
+    "type": "cafe",
+    "coordinates": [48.8584, 2.2945]
+  },
+  {
+    "id": 5,
+    "name": "Bookstore D",
+    "type": "store",
+    "coordinates": [40.7128, -74.006]
+  },
+  {
+    "id": 6,
+    "name": "Library E",
+    "type": "office",
+    "coordinates": [34.0522, -118.2437]
+  },
+  {
+    "id": 7,
+    "name": "Coffee Shop F",
+    "type": "cafe",
+    "coordinates": [51.5074, -0.1278]
+  },
+  {
+    "id": 8,
+    "name": "Supermarket G",
+    "type": "store",
+    "coordinates": [48.8566, 2.3522]
+  },
+  {
+    "id": 9,
+    "name": "Co-working Space H",
+    "type": "office",
+    "coordinates": [41.9028, 12.4964]
+  },
+  {
+    "id": 10,
+    "name": "Bakery I",
+    "type": "store",
+    "coordinates": [40.7306, -73.9352]
+  },
+  {
+    "id": 11,
+    "name": "Gym J",
+    "type": "office",
+    "coordinates": [52.52, 13.405]
+  },
+  {
+    "id": 12,
+    "name": "Bar K",
+    "type": "cafe",
+    "coordinates": [51.1657, 10.4515]
+  },
+  {
+    "id": 13,
+    "name": "Cafe L",
+    "type": "cafe",
+    "coordinates": [48.1351, 11.582]
+  },
+  {
+    "id": 14,
+    "name": "Shopping Mall M",
+    "type": "store",
+    "coordinates": [43.65107, -79.347015]
+  },
+  {
+    "id": 15,
+    "name": "Tech Hub N",
+    "type": "office",
+    "coordinates": [39.9042, 116.4074]
+  },
+  {
+    "id": 16,
+    "name": "Restaurant O",
+    "type": "cafe",
+    "coordinates": [55.7558, 37.6173]
+  },
+  {
+    "id": 17,
+    "name": "Park P",
+    "type": "office",
+    "coordinates": [48.2082, 16.3738]
+  },
+  {
+    "id": 18,
+    "name": "Clothing Store Q",
+    "type": "store",
+    "coordinates": [40.741, -73.993]
+  },
+  {
+    "id": 19,
+    "name": "Tech Store R",
+    "type": "store",
+    "coordinates": [34.0522, -118.2437]
+  },
+  {
+    "id": 20,
+    "name": "Art Gallery S",
+    "type": "store",
+    "coordinates": [39.9526, -75.1652]
+  }
 ]

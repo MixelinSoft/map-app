@@ -1,77 +1,44 @@
 <script setup>
-// Import Pinia and Store
+// Imports
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMapStore } from '@/stores/map'
-// Import Leaflet components
-import { LMap, LTileLayer, LMarker, LControlZoom, LControl } from '@vue-leaflet/vue-leaflet'
-import L from 'leaflet'
-// Import UI components
+import { LMap, LTileLayer, LControlZoom, LControl, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
 import LoadingOverlay from '@/components/UI/LoadingOverlay.vue'
 import MapActions from '@/components/Map/MapActions.vue'
-import AddMarkerModal from '@/components/Map/AddMarkerModal.vue'
-// Import static data
-import places from '@/data/places.json'
-// Import icons for markers
-import placeIcon from '@/assets/icons/place-icon.svg'
-import peopleIcon from '@/assets/icons/people-icon.svg'
-// Import utility Functions
-import getNearestPeoples from '@/utils/getNearestPeoples.js'
-// Get Map Store, Bounds, NearestPeoples
-const mapStore = useMapStore()
+import createMarkerIcon from '@/utils/createMarkerIcon.js'
+import filterPlaces from '@/utils/filterPlaces'
 
-const { currentPlaces, bounds, nearestPeoples, activeMarker, peoples } = storeToRefs(mapStore)
-// Set Places and Bounds based on Places On Load
-const setBoundsOnLoad = () => {
-  mapStore.setCurrentPlaces(places)
+// Store
+const mapStore = useMapStore()
+const { currentPlaces, bounds, peoples, nearestPeoples, activeMarker, filters } =
+  storeToRefs(mapStore)
+
+// On Map Ready
+const onReady = () => {
   mapStore.setBounds(currentPlaces.value.map((place) => place.coordinates))
   mapStore.setIsLoadingMap(false)
 }
+
+// Filtered Places
+const filteredPlaces = computed(() => filterPlaces(currentPlaces.value, filters.value))
+
 // Set Active Place
 const setActivePlace = (place) => {
-  if (place) {
-    mapStore.setShowInfoPanel(true)
-    const placeCoords = place.coordinates
-    // Update Active Marker, Nearest Peaoples
-    mapStore.setActiveMarker(place)
-  } else {
-    mapStore.resetActiveMarker()
-  }
-}
-// Create Custom Leafelet Icon
-const createIcon = (type, id = null, name = null) => {
-  // Check Marker, If Marker is People and People is Nearest to the Marker - Highlight
-  const isHighlighted =
-    (type === 'people' &&
-      nearestPeoples.value.length > 0 &&
-      nearestPeoples.value.some((people) => people.id == id)) ||
-    (type === 'place' && activeMarker.value?.id == id)
-  return L.divIcon({
-    className: 'custom-icon',
-    html: `
-    <div class="marker-container">
-      <div class="marker marker-${type} ${isHighlighted ? 'highlighted-marker' : ''}">
-        <div class="marker-dot">
-          <img class="marker-icon" src="${type === 'place' ? placeIcon : peopleIcon}" alt="${type} icon" />
-        </div>
-      </div>
-      ${type === 'people' ? `<div class="marker-people-name">${name}</div>` : ''}
-    </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-  })
+  place ? mapStore.setActiveMarker(place) : mapStore.resetActiveMarker()
 }
 </script>
 
 <template>
   <div class="map-container">
     <l-map
+      class="map"
       :zoom="4"
       :min-zoom="2"
       :center="[20.45059147699683, 20.52445080444961]"
       :bounds="bounds"
       :options="{ zoomControl: false }"
-      @ready="setBoundsOnLoad"
+      @ready="onReady"
       @click="setActivePlace(null)"
     >
       <l-tile-layer
@@ -79,17 +46,18 @@ const createIcon = (type, id = null, name = null) => {
         layer-type="base"
         name="OpenStreetMap"
       />
+
+      <l-control-zoom position="topright" />
       <l-control position="bottomright">
         <MapActions />
       </l-control>
-      <l-control-zoom position="topright"></l-control-zoom>
 
       <!-- Places Markers -->
       <l-marker
-        v-for="place in currentPlaces"
+        v-for="place in filteredPlaces"
         :key="place.id"
         :lat-lng="place.coordinates"
-        :icon="createIcon('place', place.id)"
+        :icon="createMarkerIcon('place', place.id, nearestPeoples, activeMarker, place.name)"
         @click="setActivePlace(place)"
       />
 
@@ -98,36 +66,31 @@ const createIcon = (type, id = null, name = null) => {
         v-for="people in peoples"
         :key="people.id"
         :lat-lng="[people.address.geo.lat, people.address.geo.lng]"
-        :icon="createIcon('people', people.id, people.name)"
-        @click="console.log(people.name)"
-      />
+        :icon="createMarkerIcon('people', people.id, nearestPeoples, activeMarker)"
+      >
+        <l-popup>{{ people.name }}</l-popup>
+      </l-marker>
     </l-map>
 
     <!-- UI Components -->
     <LoadingOverlay />
   </div>
-  <AddMarkerModal />
 </template>
 
 <style scoped>
-/* Map container styles */
+/* Map styles */
 .map-container {
   height: 100%;
   width: 100%;
   padding-left: 0;
   transition: padding-left 0.3s ease-in-out;
 }
-.show-info-panel {
-  padding-left: 360px;
-}
 </style>
 
-<!-- Marker Styles -->
 <style>
-.marker-container {
-  position: relative;
-}
+/* Marker Styles */
 .marker {
+  position: relative;
   width: 32px;
   height: 32px;
   display: flex;
@@ -162,31 +125,40 @@ const createIcon = (type, id = null, name = null) => {
   width: 18px;
   height: 18px;
 }
-
-.marker-people-name {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  width: max-content;
-  border: 1px solid black;
-  border-radius: 4px;
-  bottom: -38px;
-  left: 50%;
-  padding: 2px;
-  background-color: rgb(151, 255, 131);
-  color: black;
-  visibility: hidden;
-  opacity: 0.2;
-}
-.marker-container:hover .marker-people-name {
-  visibility: visible;
-  opacity: 1;
-}
-
-.highlighted-marker {
+.highlighted-marker .marker {
   border: 2px solid red;
 }
-
 .highlighted-marker .marker-dot {
   background-color: yellow;
+}
+.marker-name {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: blue;
+  color: white;
+  text-align: center;
+  padding: 4px 8px;
+  border: 1px solid white;
+  border-radius: 4px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out;
+}
+.marker-container:hover .marker-name {
+  opacity: 1;
+  visibility: visible;
+}
+.leaflet-marker-icon:not(:hover) {
+  z-index: 0 !important;
+}
+.leaflet-marker-icon:has(.marker:hover) {
+  z-index: 2 !important;
+}
+.leaflet-marker-icon:has(.highlighted-marker) {
+  z-index: 1 !important;
 }
 </style>

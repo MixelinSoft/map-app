@@ -1,13 +1,10 @@
 <script setup>
-// Import Pinia and Store
-import { storeToRefs } from 'pinia'
+// Imports
 import { useMapStore } from '@/stores/map'
-const mapStore = useMapStore()
-// Import Icons
 import { PlusIcon, FilterIcon } from 'mdi-vue3'
-
-const { showAddMarkerModal } = storeToRefs(mapStore)
-
+// Map Store
+const mapStore = useMapStore()
+// Handlers
 const openAddMarkerModal = () => {
   mapStore.setShowAddMarkerModal(true)
 }

@@ -1,5 +1,3 @@
-<script></script>
-
 <template>
   <main class="main">
     <slot />

@@ -1,22 +1,32 @@
 <script setup>
-// Import Pinia and Store
+// Imports
 import { storeToRefs } from 'pinia'
 import { useMapStore } from '@/stores/map'
-const mapStore = useMapStore()
-// Import Icon
 import { CloseIcon } from 'mdi-vue3'
-// Get ActiveMarker, Nearest Peoples, Show Info Panel States
+
+// Store
+const mapStore = useMapStore()
 const { activeMarker, nearestPeoples, showInfoPanel } = storeToRefs(mapStore)
 </script>
 
 <template>
+  <!-- Panel Drawer -->
   <v-navigation-drawer :width="360" class="info-panel pa-1" v-model="showInfoPanel">
+    <!-- Header -->
     <div class="d-flex justify-space-between mb-4 pa-1">
       <h2>Інформація:</h2>
-      <v-btn density="comfortable" :icon="CloseIcon" @click="showInfoPanel = false"></v-btn>
+      <v-btn
+        density="comfortable"
+        :icon="CloseIcon"
+        @click="showInfoPanel = false"
+        aria-label="Close information panel"
+      />
     </div>
+
+    <!-- Content -->
     <v-card class="pa-2">
       <v-list>
+        <!-- Marker Details -->
         <div v-if="activeMarker">
           <v-list-item>
             <h2>{{ activeMarker.name }}</h2>
@@ -31,12 +41,14 @@ const { activeMarker, nearestPeoples, showInfoPanel } = storeToRefs(mapStore)
             </h4>
           </v-list-item>
         </div>
-        <div v-if="nearestPeoples.length > 0" class="mt-">
+
+        <!-- Nearest Peoples -->
+        <div v-if="nearestPeoples.length">
           <v-list-item>
             <h3>Найближчі люди:</h3>
           </v-list-item>
-          <v-list-item>
-            <v-card class="pa-2 mb-4" v-for="people in nearestPeoples" :key="people.id">
+          <v-list-item v-for="people in nearestPeoples" :key="people.id">
+            <v-card class="pa-2 mb-4">
               <h3>Ім'я: {{ people.name }}</h3>
               <p>Відстань - {{ Math.round(people.distanseToSelectedPlace) }} км</p>
             </v-card>
@@ -46,8 +58,3 @@ const { activeMarker, nearestPeoples, showInfoPanel } = storeToRefs(mapStore)
     </v-card>
   </v-navigation-drawer>
 </template>
-
-<style scoped>
-.info-panel {
-}
-</style>

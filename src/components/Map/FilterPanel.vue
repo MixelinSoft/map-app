@@ -1,52 +1,54 @@
 <script setup>
-// Import Pinia and Store
+// Imports
 import { storeToRefs } from 'pinia'
 import { useMapStore } from '@/stores/map'
-const mapStore = useMapStore()
-// Import Icon
 import { CloseIcon } from 'mdi-vue3'
-// Get ActiveMarker, Nearest Peoples, Show Info Panel States
+
+// Store
+const mapStore = useMapStore()
 const { filters, showFilterPanel } = storeToRefs(mapStore)
 
+// Filter Handlers
 const toggleFilter = (type) => {
   mapStore.toggleFilter(type)
 }
+
 const resetFilters = () => {
   mapStore.resetFilters()
 }
 </script>
 
 <template>
-  <v-navigation-drawer location="right" :width="300" class="pa-2" v-model="showFilterPanel">
+  <!-- Panel Drawer -->
+  <v-navigation-drawer location="right" :width="250" class="pa-2" v-model="showFilterPanel">
+    <!-- Header with Close Button -->
     <div class="d-flex justify-space-between mb-4 pa-1">
       <h2>Фільтри:</h2>
-      <v-btn density="comfortable" :icon="CloseIcon" @click="showFilterPanel = false"></v-btn>
+      <v-btn
+        density="comfortable"
+        :icon="CloseIcon"
+        @click="showFilterPanel = false"
+        aria-label="Close filter panel"
+      />
     </div>
+
+    <!-- Filter Options -->
     <v-card class="pa-2">
       <v-switch
+        v-for="(value, key) in filters"
+        :key="key"
         color="primary"
-        label="store"
-        :model-value="filters.store"
-        @change="toggleFilter('store')"
-      ></v-switch>
-      <v-switch
-        color="primary"
-        label="cafe"
-        :model-value="filters.cafe"
-        @change="toggleFilter('cafe')"
-      ></v-switch>
-      <v-switch
-        color="primary"
-        label="office"
-        :model-value="filters.office"
-        @change="toggleFilter('office')"
-      ></v-switch>
+        :label="key"
+        :model-value="value"
+        @change="toggleFilter(key)"
+      />
     </v-card>
+
+    <!-- Reset Filters Button -->
     <div class="d-flex mt-4 pa-1">
-      <v-btn class="mr-4" @click="resetFilters">Скидання</v-btn>
-      <v-btn color="primary">Застосувати</v-btn>
+      <v-btn density="comfortable" color="primary" @click="resetFilters" aria-label="Reset filters">
+        Скидання
+      </v-btn>
     </div>
   </v-navigation-drawer>
 </template>
-
-<style scoped></style>

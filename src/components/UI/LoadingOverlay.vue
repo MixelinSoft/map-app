@@ -1,9 +1,8 @@
 <script setup>
-// Import Pinia
+// Imports
 import { storeToRefs } from 'pinia'
-// Import Store
 import { useMapStore } from '@/stores/map'
-// Get Loading States
+// Map Store
 const { isLoadingMap, isLoadingPeoples } = storeToRefs(useMapStore())
 </script>
 

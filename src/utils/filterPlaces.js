@@ -1,5 +1,7 @@
-const filterPlaces = (places, filters) => {
-  return places.filter((place) => filters.includes(place.type))
+const filterPlaces = (placesArr, filtersObj) => {
+  return placesArr.filter((place) => {
+    return filtersObj[place.type]
+  })
 }
 
 export default filterPlaces

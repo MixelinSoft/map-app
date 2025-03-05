@@ -1,44 +1,56 @@
 <script setup>
-// Import Pinia and Store
+// Imports
 import { storeToRefs } from 'pinia'
 import { useMapStore } from '@/stores/map'
+import { reactive } from 'vue'
+
+// Store
 const mapStore = useMapStore()
-// Get ActiveMarker, Nearest Peoples, Show Info Panel States
-const { showAddMarkerModal, peoples } = storeToRefs(mapStore)
-// Import ref
-import { ref } from 'vue'
-// Import Utils
-import getNearestPeoples from '@/utils/getNearestPeoples.js'
+const { showAddMarkerModal } = storeToRefs(mapStore)
 
-const name = ref('')
-const type = ref('')
-const latitude = ref('')
-const longitude = ref('')
+// Form Data
+const formData = reactive({
+  name: '',
+  type: '',
+  latitude: '',
+  longitude: '',
+})
 
+// Form Rules
 const nameRules = [
-  (v) => !!v || 'Це поле обов`язкове!',
+  (v) => !!v || 'Це поле обовязкове!',
   (v) => v.length >= 3 || 'Мінімум 3 символи',
   (v) => v.length <= 20 || 'Максимум 20 символів',
 ]
+const typesRules = [(v) => !!v || 'Це поле обовязкове!']
 const coordinatesRules = [
-  (v) => !!v || 'Це поле обов`язкове!',
+  (v) => !!v || 'Це поле обовязкове!',
   (v) => v.length >= 2 || 'Мінімум 2 значення',
   (v) => v.length <= 10 || 'Максимум 10 значеннь',
   (v) => typeof +v === 'number' || 'Це поле має бути числом',
 ]
+const lngRules = [(v) => (+v >= -180 && +v <= 180) || 'Мінімум -180, Максимум 180']
+const latRules = [(v) => (v >= -90 && v <= 90) || 'Мінімум -90, Максимум 90']
 
-// Submit Form
+// Submit Form Handler
 const submitForm = () => {
-  mapStore.addPlace({
+  const place = {
     id: Date.now(),
-    name: name.value,
-    type: type.value,
-    coordinates: [latitude.value, longitude.value],
-  })
+    name: formData.name,
+    type: formData.type,
+    coordinates: [+formData.latitude, +formData.longitude],
+  }
+  mapStore.addPlace(place)
+  closeModal()
 }
-// Close Modal
+
+// Close Modal Handler
 const closeModal = () => {
   mapStore.setShowAddMarkerModal(false)
+  formData.name = ''
+  formData.type = ''
+  formData.latitude = ''
+  formData.longitude = ''
 }
 </script>
 
@@ -48,37 +60,42 @@ const closeModal = () => {
       <form @submit.prevent="submitForm">
         <v-row>
           <v-col>
-            <v-text-field v-model="name" label="Назва*" required :rules="nameRules"></v-text-field>
+            <v-text-field
+              v-model="formData.name"
+              label="Назва*"
+              required
+              :rules="nameRules"
+            ></v-text-field>
           </v-col>
         </v-row>
         <v-row>
           <v-col>
             <v-select
-              v-model="type"
+              v-model="formData.type"
               label="Тип місця"
               :items="['store', 'cafe', 'office']"
               required
-              :rules="[(v) => !!v || 'Це поле обов`язкове!']"
+              :rules="typesRules"
             ></v-select>
           </v-col>
         </v-row>
         <v-row>
           <v-col>
             <v-text-field
-              v-model="latitude"
+              v-model="formData.latitude"
               type="number"
               label="Широта*"
               required
-              :rules="coordinatesRules"
+              :rules="[...coordinatesRules, ...latRules]"
             ></v-text-field>
           </v-col>
           <v-col>
             <v-text-field
-              v-model="longitude"
+              v-model="formData.longitude"
               type="number"
               label="Довгота*"
               required
-              :rules="coordinatesRules"
+              :rules="[...coordinatesRules, ...lngRules]"
             ></v-text-field>
           </v-col>
         </v-row>

@@ -1,11 +1,10 @@
 const getDistance = (firstPointCoords, secondPointCoords) => {
-  // Radius of the earth in km
+  //  Earth Radius
   const R = 6371
   const toRad = (deg) => (deg * Math.PI) / 180
 
   // Haversine Formula
   const dLat = toRad(secondPointCoords.lat - firstPointCoords.lat)
-  // console.log(dLat)
   const dLon = toRad(secondPointCoords.lng - firstPointCoords.lng)
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
